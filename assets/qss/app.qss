@@ -1,0 +1,3 @@
+QMainWindow { background: #1b1b1b; }
+QLabel { color: #ddd; }
+QPushButton { padding: 6px 10px; }
