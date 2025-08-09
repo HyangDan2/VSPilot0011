@@ -1,8 +1,8 @@
 from __future__ import annotations
 from PySide6.QtWidgets import QMainWindow, QWidget, QFileDialog, QMessageBox, QComboBox, QToolBar, QPushButton, QHBoxLayout, QVBoxLayout
 from PySide6.QtCore import Qt, Signal
-from .image_view import ImageView
-from .panels import HaarPanel, OnnxPanel
+from ui.image_view import ImageView
+from ui.panels import HaarPanel, OnnxPanel
 
 
 class MainWindow(QMainWindow):

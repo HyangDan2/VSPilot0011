@@ -14,12 +14,19 @@ class HaarPanel(QWidget):
         self.clip = QDoubleSpinBox(minimum=1.0, maximum=5.0, singleStep=0.1, value=2.0)
         self.inv = QCheckBox("Invert(반전) 사용")
         for w, label in [
-            (self.sf, "scaleFactor"), (self.mn, "minNeighbors"), (self.ms, "minSize(px)"), (self.clip, "CLAHE clipLimit"), (self.inv, "Invert")
+            (self.sf, "scaleFactor"), (self.mn, "minNeighbors"), (self.ms, "minSize(px)"),
+            (self.clip, "CLAHE clipLimit"), (self.inv, "Invert")
         ]:
             lay.addRow(label, w)
+            # valueChanged: 슬라이더/스핀박스 값 변경 즉시
             if hasattr(w, "valueChanged"):
                 w.valueChanged.connect(self.changed)
+            # editingFinished: 키보드 입력 후 엔터/포커스아웃
+            if hasattr(w, "editingFinished"):
+                w.editingFinished.connect(self.changed)
+
         self.inv.stateChanged.connect(self.changed)
+
 
     def params(self):
         return self.sf.value(), self.mn.value(), self.ms.value(), self.clip.value(), self.inv.isChecked()
@@ -38,16 +45,28 @@ class OnnxPanel(QWidget):
         self.clip = QDoubleSpinBox(minimum=1.0, maximum=5.0, singleStep=0.1, value=2.0)
         self.inv = QCheckBox("Invert(반전) 사용")
         self.provider = QComboBox(); self.provider.addItems(["CPUExecutionProvider", "CUDAExecutionProvider"])
+        # OnnxPanel.__init__ 내
         for w, label in [
-            (self.in_w, "Input Width"), (self.in_h, "Input Height"), (self.conf, "Conf Thres"),
-            (self.iou, "IoU Thres"), (self.clip, "CLAHE clipLimit"), (self.inv, "Invert"), (self.provider, "Provider")
+            (self.in_w, "Input Width"), (self.in_h, "Input Height"),
+            (self.conf, "Conf Thres"), (self.iou, "IoU Thres"),
+            (self.clip, "CLAHE clipLimit"), (self.inv, "Invert"),
+            (self.provider, "Provider")
         ]:
             lay.addRow(label, w)
             if hasattr(w, "valueChanged"):
                 w.valueChanged.connect(self.changed)
+            if hasattr(w, "editingFinished"):
+                w.editingFinished.connect(self.changed)
             if hasattr(w, "currentIndexChanged"):
                 w.currentIndexChanged.connect(self.changed)
+
         self.inv.stateChanged.connect(self.changed)
+
+        # 입력 중에도 즉시 반응 원하면(스핀박스)
+        for sb in (self.in_w, self.in_h, self.conf, self.iou, self.clip):
+            if hasattr(sb, "setKeyboardTracking"):
+                sb.setKeyboardTracking(True)  # 타이핑 중에도 valueChanged 발생
+
 
     def params(self):
         return (

@@ -1,12 +1,18 @@
 from __future__ import annotations
 import cv2
 import numpy as np
+import os
 
 
 class HaarFaceDetector:
     def __init__(self) -> None:
-        haar_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-        lbp_path = cv2.data.haarcascades + "lbpcascade_frontalface.xml"
+        haar_path = os.path.join(cv2.data.haarcascades, "haarcascade_frontalface_default.xml")
+        if not os.path.exists(haar_path):
+            raise FileNotFoundError(f"Haar cascade file not found: {haar_path}")
+
+        lbp_path = os.path.join(cv2.data.haarcascades, "lbpcascade_frontalface.xml")
+        if not os.path.exists(lbp_path):
+            raise FileNotFoundError(f"LBP cascade file not found: {lbp_path}")
         self.haar = cv2.CascadeClassifier(haar_path)
         self.lbp = cv2.CascadeClassifier(lbp_path)
         self.scaleFactor = 1.15
