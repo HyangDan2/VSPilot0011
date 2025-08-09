@@ -1,0 +1,9 @@
+PySide6>=6.6
+opencv-python>=4.8
+numpy>=1.24
+Pillow>=10.0
+
+# ONNX 백엔드 사용 시 필요
+onnxruntime>=1.18; sys_platform != "linux"
+# GPU 가속시 선택
+# onnxruntime-gpu>=1.18
