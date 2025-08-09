@@ -35,6 +35,7 @@ face-detector-gui/
 │ └─ image_utils.py
 └─ assets/
 └─ qss/app.qss (선택)
+
 ---
 
 ## 🚀 실행 방법
