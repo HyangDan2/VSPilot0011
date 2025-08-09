@@ -16,6 +16,8 @@ Haar/LBP(OpenCV)와 ONNX 백엔드를 지원하며, CLAHE/Invert, 슬라이더 �
 ---
 
 ## 📂 프로젝트 구조
+```bash
+.
 face-detector-gui/
 ├─ README.md
 ├─ LICENSE.txt
@@ -35,7 +37,7 @@ face-detector-gui/
 │ └─ image_utils.py
 └─ assets/
 └─ qss/app.qss (선택)
-
+```
 ---
 
 ## 🚀 실행 방법
