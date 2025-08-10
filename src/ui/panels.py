@@ -171,26 +171,22 @@ class OnnxPanel(QWidget):
         super().__init__()
         lay = QFormLayout(self)
 
-        # Input Width/Height: 320~1280 step 32 -> index 0..30
-        self.in_w = LDiscreteStepSlider(base=320, step=32, count=(1280 - 320) // 32, value=640)
-        self.in_h = LDiscreteStepSlider(base=320, step=32, count=(1280 - 320) // 32, value=640)
+        # ✅ in_w/in_h/clahe/invert 제거(고정값 처리) → UI엔 안 보이게
+        # self.in_w = LDiscreteStepSlider(...)
+        # self.in_h = LDiscreteStepSlider(...)
+        # self.clip = LFloatSlider(...)
+        # self.inv  = QCheckBox(...)
 
-        # Conf/Iou: float sliders
+        # ✅ 남기는 것: conf, iou, provider
         self.conf = LFloatSlider(0.05, 0.90, 0.01, 0.25, fmt="{:.2f}")
-        self.iou = LFloatSlider(0.10, 0.90, 0.01, 0.45, fmt="{:.2f}")
-        self.clip = LFloatSlider(1.0, 5.0, 0.1, 2.0, fmt="{:.1f}")
-        self.inv = QCheckBox("Invert(반전) 사용")
+        self.iou  = LFloatSlider(0.10, 0.90, 0.01, 0.45, fmt="{:.2f}")
 
         self.provider = QComboBox()
         self.provider.addItems(["CPUExecutionProvider", "CUDAExecutionProvider"])
 
         for w, label in [
-            (self.in_w, "Input Width"),
-            (self.in_h, "Input Height"),
             (self.conf, "Conf Thres"),
-            (self.iou, "IoU Thres"),
-            (self.clip, "CLAHE clipLimit"),
-            (self.inv, "Invert"),
+            (self.iou,  "IoU Thres"),
             (self.provider, "Provider"),
         ]:
             lay.addRow(label, w)
@@ -199,15 +195,24 @@ class OnnxPanel(QWidget):
             if hasattr(w, "currentIndexChanged"):
                 w.currentIndexChanged.connect(self.changed)
 
-        self.inv.stateChanged.connect(self.changed)
-
     def params(self):
+        """
+        하위 호환을 위해 (in_w, in_h, conf, iou, clahe, invert, provider) 형태 유지.
+        단, 고정값 적용:
+          - in_w = 640, in_h = 640
+          - clahe = 1.0 (미사용)
+          - invert = False
+        """
+        fixed_in_w  = 640
+        fixed_in_h  = 640
+        fixed_clahe = 1.0
+        fixed_inv   = False
         return (
-            self.in_w.value(),
-            self.in_h.value(),
+            fixed_in_w,
+            fixed_in_h,
             self.conf.value(),
             self.iou.value(),
-            self.clip.value(),
-            self.inv.isChecked(),
+            fixed_clahe,
+            fixed_inv,
             self.provider.currentText(),
         )

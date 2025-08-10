@@ -66,6 +66,42 @@ class DetectController:
     def run(self):
         self._debounce.start(50)  # 필요 시 30~100ms 조절
 
+    def _sync_onnx_params(self):
+        """UI의 ONNX 파라미터를 디텍터에 반영. (고정/가변 분리)"""
+        if not self.onnx:
+            return
+        # 하위 호환 시그니처 유지: (in_w, in_h, conf, iou, clahe, inv, provider)
+        in_w, in_h, conf, iou, clahe, inv, _prov = self.win.onnx_panel.params()
+
+        # ✅ 입력 크기는 고정값 강제
+        self.onnx.input_width  = 640
+        self.onnx.input_height = 640
+
+        # ✅ 스레시홀드만 반영
+        self.onnx.conf_threshold = float(conf)
+        self.onnx.iou_threshold  = float(iou)
+
+        # ✅ 좌표 클립은 항상 활성화 (이전 clip 오용 제거)
+        self.onnx.clip_coords = True
+
+        # ✅ 색상 반전은 고정 비활성화
+        self.onnx.invert_colors = False
+
+    def _init_onnx_session_from_ui_provider(self):
+        import onnxruntime as ort
+        provider = self.win.onnx_panel.provider.currentText()
+        avail = ort.get_available_providers()
+        req = [provider] if provider in avail else ["CPUExecutionProvider"]
+        if provider not in avail:
+            self.win.show_warn(
+                "Provider fallback",
+                f"{provider} 사용 불가. 사용 가능: {avail}\nCPUExecutionProvider로 폴백합니다."
+            )
+        self.onnx = ONNXFaceDetector(self.onnx_model_path, providers=req)
+
+        # ✅ 세션 직후에도 한 번 더 고정/가변 동기화
+        self._sync_onnx_params()
+
     def _run_now(self):
         """즉시 실행(디바운스 우회). Run 버튼/이미지 로드/백엔드 전환 등에서 사용."""
         if self.original_rgb is None:
@@ -77,9 +113,7 @@ class DetectController:
                 # 파라미터 적용
                 sf, mn, ms, clip, inv = self.win.haar_panel.params()
                 self.haar.set_params(sf, mn, ms, clip, inv)
-                # 필요 시 프리뷰 모드 외부에서 토글 가능 (기본 True)
-                # self.haar.preview_preproc = True
-
+                # Haar는 detect가 (이미지, faces)로 리턴
                 out, _faces = self.haar.detect(self.original_rgb)
 
             else:  # ONNX
@@ -94,9 +128,18 @@ class DetectController:
                         return
                     self._init_onnx_session_from_ui_provider()
 
-                in_w, in_h, conf, iou, clip, inv, _prov = self.win.onnx_panel.params()
-                self.onnx.set_params(in_w, in_h, conf, iou, clip, inv)
-                out, _faces = self.onnx.detect(self.original_rgb)
+                # ★ UI 파라미터를 ONNX 디텍터에 반영
+                self._sync_onnx_params()
+
+                # ONNXFaceDetector.detect는 '검출 리스트(또는 dets, ms)'를 리턴함
+                det_res = self.onnx.detect(self.original_rgb)
+                if isinstance(det_res, tuple):
+                    dets = det_res[0]  # (dets, [ms]) 대응
+                else:
+                    dets = det_res
+
+                # ★ 시각화 이미지 생성
+                out = self.onnx.draw(self.original_rgb, dets)
 
         except Exception as e:
             if backend == "Haar":
@@ -105,7 +148,7 @@ class DetectController:
                 self.win.show_error("ONNX Inference Error", str(e))
             return
 
-        # 표시
+        # 표시 (out은 반드시 HxWx3 uint8 이미지)
         self.result_rgb = np.ascontiguousarray(out)
         self.win.right.set_rgb(self.result_rgb)
 
@@ -139,6 +182,10 @@ class DetectController:
         avail = ort.get_available_providers()
         req = [provider] if provider in avail else ["CPUExecutionProvider"]
         if provider not in avail:
-            self.win.show_warn("Provider fallback",
-                               f"{provider} 사용 불가. 사용 가능: {avail}\nCPUExecutionProvider로 폴백합니다.")
+            self.win.show_warn(
+                "Provider fallback",
+                f"{provider} 사용 불가. 사용 가능: {avail}\nCPUExecutionProvider로 폴백합니다."
+            )
         self.onnx = ONNXFaceDetector(self.onnx_model_path, providers=req)
+        # 세션 생성 직후에도 UI 값 동기화 한 번
+        self._sync_onnx_params()
