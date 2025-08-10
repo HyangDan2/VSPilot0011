@@ -5,7 +5,7 @@ from PySide6.QtWidgets import QFileDialog
 from PySide6.QtCore import QTimer
 from ui.main_window import MainWindow
 from detectors.haar_detector import HaarFaceDetector
-from detectors.face_detector import ONNXFaceDetector, HAS_ORT
+from detectors.onnx_detector2 import ONNXFaceDetector, HAS_ORT
 
 
 class DetectController:
