@@ -174,30 +174,51 @@ class ONNXFaceDetector:
         return boxes, conf
 
     def _postprocess(self, outputs, ratio, dwdh, orig_hw):
+        # 단일/리스트 출력 호환
         out = outputs[0] if isinstance(outputs, (list, tuple)) else outputs
+
+        # face6 디코드: boxes=(N,4, xyxy at input-scale or normalized), conf=(N,)
         boxes, conf = self._decode_face6(out)
 
+        # 역-Letterbox (depad + scale back)
         if boxes.shape[0] > 0:
-            dh, dw = dwdh[1], dwdh[0]
-            boxes[:, [0,2]] -= dw
-            boxes[:, [1,3]] -= dh
+            dh, dw = dwdh[1], dwdh[0]  # dwdh=(dw,dh)
+            boxes[:, [0, 2]] -= dw
+            boxes[:, [1, 3]] -= dh
             boxes /= max(ratio, 1e-9)
 
+        # 클립
         if boxes.shape[0] > 0 and self.clip_coords:
             oh, ow = orig_hw
-            boxes[:, [0,2]] = np.clip(boxes[:, [0,2]], 0, ow-1)
-            boxes[:, [1,3]] = np.clip(boxes[:, [1,3]], 0, oh-1)
+            boxes[:, [0, 2]] = np.clip(boxes[:, [0, 2]], 0, ow - 1)
+            boxes[:, [1, 3]] = np.clip(boxes[:, [1, 3]], 0, oh - 1)
 
-        keep = nms_numpy(boxes, conf, iou_thres=self.iou_threshold, max_det=300) if boxes.shape[0] else []
+        # ✅ 최소 박스 크기 필터 (기본 24x24 px)
+        if boxes.shape[0] > 0:
+            min_w = getattr(self, "min_box_w", 24)
+            min_h = getattr(self, "min_box_h", 24)
+            w = boxes[:, 2] - boxes[:, 0]
+            h = boxes[:, 3] - boxes[:, 1]
+            keep_sz = (w >= min_w) & (h >= min_h)
+            if np.any(keep_sz):
+                boxes, conf = boxes[keep_sz], conf[keep_sz]
+            else:
+                return []  # 전부 제거되면 바로 종료
+
+        # NMS
+        max_det = getattr(self, "max_det", 300)
+        keep = nms_numpy(boxes, conf, iou_thres=self.iou_threshold, max_det=max_det) if boxes.shape[0] else []
         dets = [(boxes[i], float(conf[i])) for i in keep]
 
+        # 디버그
         if self.debug and dets:
             k = min(self.debug_topk, len(dets))
             print(f"[DEBUG] keep top-{k}:")
             for i in range(k):
                 b, sc = dets[i]
-                print(f"  {i}: box={np.round(b,1)}, score={sc:.3f}")
+                print(f"  {i}: box={np.round(b, 1)}, score={sc:.3f}")
         return dets
+
 
     def detect(self, img_bgr: np.ndarray):
         inp, ratio, dwdh, orig_hw = self._preprocess(img_bgr)

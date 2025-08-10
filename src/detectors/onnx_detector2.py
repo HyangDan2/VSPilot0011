@@ -296,14 +296,12 @@ class ONNXFaceDetector:
             boxes = np.stack([x1, y1, x2, y2], axis=1).astype(np.float32)
 
             if normalized:
-                # 입력 크기 기준 좌표로 변환
                 boxes[:, [0, 2]] *= self.input_width
                 boxes[:, [1, 3]] *= self.input_height
-            # else: 이미 입력 크기 기준 픽셀로 가정
 
         # 역-Letterbox
         if not self.skip_depad_scale and boxes.shape[0] > 0:
-            dh, dw = dwdh[1], dwdh[0]  # 주의: dwdh는 (dw, dh)
+            dh, dw = dwdh[1], dwdh[0]
             boxes[:, [0, 2]] -= dw
             boxes[:, [1, 3]] -= dh
             boxes /= max(ratio, 1e-9)
@@ -313,6 +311,14 @@ class ONNXFaceDetector:
             oh, ow = orig_hw
             boxes[:, [0, 2]] = np.clip(boxes[:, [0, 2]], 0, ow - 1)
             boxes[:, [1, 3]] = np.clip(boxes[:, [1, 3]], 0, oh - 1)
+
+        # ✅ 최소 박스 크기 필터
+        if boxes.shape[0] > 0:
+            w = boxes[:, 2] - boxes[:, 0]
+            h = boxes[:, 3] - boxes[:, 1]
+            min_w, min_h = 24, 24  # px
+            keep_sz = (w >= min_w) & (h >= min_h)
+            boxes, conf, cls_idx = boxes[keep_sz], conf[keep_sz], cls_idx[keep_sz]
 
         # NMS
         keep = nms_numpy(boxes, conf, iou_thres=self.iou_threshold, max_det=300) if boxes.shape[0] else []
@@ -328,6 +334,7 @@ class ONNXFaceDetector:
                     print(f"  {i}: box={b.round(1)}, score={sc:.3f}, cls={cl}")
 
         return dets
+
 
     # ---------------- Public API ----------------
     def detect(self, img_bgr):
