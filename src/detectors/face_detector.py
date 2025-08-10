@@ -144,7 +144,7 @@ class ONNXFaceDetector:
         if xywh.size == 0: return False
         sample = xywh[np.random.choice(xywh.shape[0], min(32, xywh.shape[0]), replace=False)]
         ratio = np.mean((sample >= -0.01) & (sample <= 1.01))
-        return ratio > 0.80
+        return ratio > 0.85
 
     def _decode_face6(self, out_any) -> Tuple[np.ndarray, np.ndarray]:
         out = self._normalize_layout(out_any)  # (N,6)
@@ -237,8 +237,8 @@ class ONNXFaceDetector:
             if self.center_score and min(w, h) > self.tiny_box_side_px:
                 cx, cy = x1 + w//2, y1 + h//2
                 cv2.circle(vis, (cx, cy), 3, (0,255,255), -1)
-                cv2.putText(vis, f"{score:.2f}", (cx+5, cy-5), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,255), 2)
+                cv2.putText(vis, f"{score:.2f}", (cx+5, cy-5), cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,255), 2)
             else:
                 cv2.putText(vis, f"face {score:.2f}", (x1, max(0, y1-5)),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0,255,0), 2)
         return vis

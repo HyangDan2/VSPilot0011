@@ -365,9 +365,9 @@ class ONNXFaceDetector:
                 cv2.circle(vis, (cx, cy), 3, (0, 255, 255), -1)
                 # ✅ 중앙에 클래스+점수
                 cv2.putText(vis, label, (cx + 5, cy - 5),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 255), 2)
             else:
                 # 작은 박스는 기존처럼 코너에
                 cv2.putText(vis, label, (x1, max(0, y1 - 5)),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 2)
         return vis

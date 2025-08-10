@@ -23,7 +23,7 @@ class DetectController:
         self.haar = HaarFaceDetector()
         self.haar.preview_preproc = True  # ★ 처리 프리뷰 켜기
         self.onnx: ONNXFaceDetector | None = None
-        self.onnx_model_path: str | None = None
+        self.onnx_model_path: str | str = ""
 
         # 디바운스 타이머
         self._debounce = QTimer()
@@ -176,16 +176,3 @@ class DetectController:
             self.onnx = None
             self.win.show_error("ONNX Load Error", str(e))
 
-    def _init_onnx_session_from_ui_provider(self):
-        import onnxruntime as ort
-        provider = self.win.onnx_panel.provider.currentText()
-        avail = ort.get_available_providers()
-        req = [provider] if provider in avail else ["CPUExecutionProvider"]
-        if provider not in avail:
-            self.win.show_warn(
-                "Provider fallback",
-                f"{provider} 사용 불가. 사용 가능: {avail}\nCPUExecutionProvider로 폴백합니다."
-            )
-        self.onnx = ONNXFaceDetector(self.onnx_model_path, providers=req)
-        # 세션 생성 직후에도 UI 값 동기화 한 번
-        self._sync_onnx_params()
