@@ -59,5 +59,5 @@ pyinstaller -F -w -n FaceDetector src/app.py
 ```
 
 ## License
-MIT License - See [License](./License)
+MIT License - See [License](./License.txt)
 
