@@ -1,21 +1,21 @@
 # 🖥 Face Detection GUI (PySide6)
 
-PySide6 기반 OOP 구조로 작성한 얼굴 검출 GUI 앱입니다.  
-Haar/LBP(OpenCV)와 ONNX 백엔드를 지원하며, CLAHE/Invert, 슬라이더 기반 파라미터 조절, 실시간 재실행 기능이 있습니다.
+A face detection GUI application built with PySide6 in an OOP structure.  
+Supports Haar/LBP (OpenCV) and ONNX backends, with CLAHE/Invert processing, slider-based parameter control, and real-time re-execution.
 
 ---
 
 ## ✨ Features
-- **백엔드 선택**: Haar/LBP (OpenCV) & ONNX
-- **이미지 처리 옵션**: CLAHE 대비 향상, 반전(Invert)
-- **실시간 파라미터 조절**: 슬라이더 변경 시 자동 재실행
-- **입출력 기능**: 이미지 로드 / 저장
-- **OOP 구조**: UI / Controller / Detector / Utils 계층 분리
-- **PySide6 UI**: QMainWindow + FormLayout 기반
+- **Backend Selection**: Haar/LBP (OpenCV) & ONNX
+- **Image Processing Options**: CLAHE contrast enhancement, Invert
+- **Real-time Parameter Control**: Automatic re-execution when sliders are adjusted
+- **I/O Functions**: Load and save images
+- **OOP Architecture**: Separated into UI / Controller / Detector / Utils layers
+- **PySide6 UI**: Built on QMainWindow + FormLayout
 
 ---
 
-## 📂 프로젝트 구조
+## 📂 Project Structure
 ```bash
 .
 face-detector-gui/
@@ -23,37 +23,41 @@ face-detector-gui/
 ├─ LICENSE.txt
 ├─ requirements.txt
 ├─ src/
-│ ├─ app.py # 실행 진입점
-│ ├─ controllers/
-│ │ └─ detect_controller.py
-│ ├─ detectors/
-│ │ ├─ haar_detector.py
-│ │ └─ onnx_detector.py
-│ ├─ ui/
-│ │ ├─ main_window.py
-│ │ ├─ panels.py
-│ │ └─ image_view.py
-│ └─ utils/
-│ └─ image_utils.py
+│  ├─ app.py                # Entry point
+│  ├─ controllers/
+│  │   └─ detect_controller.py
+│  ├─ detectors/
+│  │   ├─ haar_detector.py
+│  │   └─ onnx_detector.py
+│  ├─ ui/
+│  │   ├─ main_window.py
+│  │   ├─ panels.py
+│  │   └─ image_view.py
+│  └─ utils/
+│      └─ image_utils.py
 └─ assets/
-└─ qss/app.qss (선택)
+   └─ qss/app.qss (optional)
 ```
----
 
-## 🚀 실행 방법
+## 🚀 How to Run
 ```bash
-# 1. 가상환경 생성 및 활성화 (권장)
+# 1. Create and activate a virtual environment (recommended)
 python -m venv .venv
 source .venv/bin/activate      # Windows: .venv\Scripts\activate
 
-# 2. 패키지 설치
+# 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. 실행
+# 3. Run
 python -m src.app
-
-📦 빌드 (PyInstaller)
 ```
+
+## 📦 Build with PyInstaller
+```bash
 pip install pyinstaller
 pyinstaller -F -w -n FaceDetector src/app.py
 ```
+
+## License
+MIT License - See [License](./License)
+
